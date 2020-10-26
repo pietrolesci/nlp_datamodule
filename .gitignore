@@ -8,7 +8,7 @@ __pycache__
 */__pycache__/
 */*/__pycache__/
 *.cpython*
-*.ipynb
+# *.ipynb
 
 # logs
 lightning_logs
