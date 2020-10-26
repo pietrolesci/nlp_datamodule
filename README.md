@@ -7,7 +7,7 @@ The `utils.py` file collects some of the most common preprocessing steps. Instea
 
 The `nlp_module.py` implements the main class. There are still a few design choices that needs to be made. In particular:
 
-- How to implement numericalization supporting both dense (e.g., word vectors) and sparse (e.g., tf-idf)
+- How to implement numericalization supporting both dense (e.g., word vectors _à la_ Word2Vec, or something particular like [PRADO](https://ai.googleblog.com/2020/09/advancing-nlp-with-efficient-projection.html?m=1)) and sparse (e.g., tf-idf)
     - In both cases we need to build a vocabulary which needs a frequency count -> implementing these things is one of the most valuable contributions
 
 - General API design: efficiency vs flexibility, plus make it compatible with the general Pytorch-Lightning approach
