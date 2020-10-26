@@ -86,7 +86,7 @@ PHONENUMBER_CODE = " xxphonenumber "
 HASHTAG_CODE = " xxhashtag "
 URL_CODE = " xxurl "
 USERHANDLER_CODE = " xxuserhandler "
-UNICODE_FORM = " NFKC "
+UNICODE_FORM = "NFKC"
 
 
 @dispatch(str)
@@ -111,12 +111,12 @@ def normalize_quotation_marks(t: List[str]) -> List[str]:
 
 @dispatch(str)
 def normalize_unicode(t: str) -> str:
-    return _normalize_unicode(t, UNICODE_FORM)
+    return _normalize_unicode(t, form=UNICODE_FORM)
 
 
 @dispatch(list)
 def normalize_unicode(t: List[str]) -> List[str]:
-    return [_normalize_unicode(i, UNICODE_FORM) for i in t]
+    return [_normalize_unicode(i, form=UNICODE_FORM) for i in t]
 
 
 @dispatch(str)
@@ -232,26 +232,28 @@ def remove_punctuation(t: List[str]) -> List[str]:
 # nltk and stop_words preprocessing tools
 STOPWORDS = stopwords.words("english")
 STOPWORDS.append(stop_words.get_stop_words("english"))
+STOPWORDS.extend(["", " "])
+
 
 
 @dispatch(str)
 def remove_stopwords(t: str) -> str:
-    return t.translate(str.maketrans("", "", STOPWORDS))
+    return " ".join([i for i in t.split() if i not in STOPWORDS])
 
 
 @dispatch(list)
 def remove_stopwords(t: List[str]) -> List[str]:
-    return [i.translate(str.maketrans("", "", STOPWORDS)) for i in t]
+    return [i for i in t if i not in STOPWORDS]
 
 
 # custom functions
 @dispatch(str)
-def lowercase(t: str) -> str:
+def normalize_tolowercase(t: str) -> str:
     return t.lower()
 
 
 @dispatch(list)
-def lowercase(t: List[str]) -> List[str]:
+def normalize_tolowercase(t: List[str]) -> List[str]:
     return [i.lower() for i in t]
 
 
@@ -262,6 +264,7 @@ __all__ = [
     "normalize_quotation_marks",
     "normalize_unicode",
     "normalize_whitespace",
+    "normalize_tolowercase",
     "replace_currency_symbols",
     "replace_emojis",
     "replace_numbers",
@@ -273,5 +276,4 @@ __all__ = [
     "remove_accents",
     "remove_punctuation",
     "remove_stopwords",
-    "lowercase",
 ]

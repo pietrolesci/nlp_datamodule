@@ -1,6 +1,8 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from typing import List, Union
+from collections import Counter
+from tqdm import tqdm
 from utils import (
     normalize_repeating_chars,
     normalize_repeating_words,
@@ -19,7 +21,7 @@ from utils import (
     # remove_accents,
     remove_punctuation,
     remove_stopwords,
-    lowercase,
+    normalize_tolowercase,
 )
 
 
@@ -39,13 +41,8 @@ class NLPDataModule(pl.LightningDataModule):
     4. Create dataloaders
     """
 
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def prepare_data(self):
-        """
-        Dowloads data
-        """
+    def __init__(self, vocab=None, *args, **kwargs):
+        self.vocab = vocab
         pass
 
     def normalization(self, text: Union[List[str], str]) -> Union[List[str], str]:
@@ -74,13 +71,12 @@ class NLPDataModule(pl.LightningDataModule):
         text = replace_phone_numbers(text)
         text = replace_urls(text)
         text = replace_user_handles(text)
-        text = normalize_whitespace(text)
-        text = normalize_quotation_marks(text)
         text = normalize_hyphenated_words(text)
         text = normalize_unicode(text)
         text = normalize_repeating_chars(text)
         text = normalize_repeating_words(text)
-        text = lowercase(text)
+        text = normalize_whitespace(text)
+        text = normalize_tolowercase(text)
         return text
 
     def substitution(self, text: Union[List[str], str]) -> Union[List[str], str]:
@@ -134,6 +130,7 @@ class NLPDataModule(pl.LightningDataModule):
         """
         # NOTE: the order is important here
         text = remove_stopwords(text)
+        text = normalize_quotation_marks(text)
         text = remove_punctuation(text)
         return text
 
@@ -149,26 +146,27 @@ class NLPDataModule(pl.LightningDataModule):
         """
         pass
 
-    def numericalization(self, text: List[str]) -> List[int]:
+    def numericalization(self, text: List[str], max_len: int, pad: int) -> List[int]:
         """
         This step can be done as a pre-processing step or be part of an end-to-end
         training procedure. In general, we need to translate words into numbers in
         order to operate on them. There are various methods to represent words
         mathematically: n_grams, tf-idf, word-embeddings (shallow or deep)
         """
-        pass
-
-    def setup(self, stage: str = None):
-        """
-        Create datasets
-        """
-        pass
-
-    def train_dataloader(self) -> DataLoader:
-        pass
-
-    def validation_dataloader(self) -> DataLoader:
-        pass
-
-    def test_dataloader(self) -> DataLoader:
-        pass
+        if self.vocab is None:
+            raise ValueError("You need to provide a vocabulary to numericalize.")
+        text = [self.word2index[word] if word in self.word2index else 0 for word in text[:max_len]]
+        if max_len - len(text) > 0:
+            padding = [pad] * (max_len - len(text))
+            text.extend(padding)
+        return text
+        
+    # NOTE: this might be better, but the important point is that build_vocab
+    # should be a first-class citizen in NLPDataModule
+    def build_vocab(self, text: List[List[str]]) -> None:
+        self.vocab = Counter()
+        for i in tqdm(text, desc="Building vocab"):
+            self.vocab.update(i)
+        self.word2index = {k: i+2 for i, k in enumerate(self.vocab.keys())}
+        self.word2index.update({"<pad>": 0, "<unk>": 1})
+        self.idx2word = {i: k for k, i in self.word2index.items()}
