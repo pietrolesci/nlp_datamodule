@@ -1,0 +1,15 @@
+# MacOS stuff
+.DS_Store
+.vscode
+
+# Dev
+.pytest_cache/
+__pycache__
+*/__pycache__/
+*/*/__pycache__/
+*.cpython*
+*.ipynb
+
+# logs
+lightning_logs
+wandb
